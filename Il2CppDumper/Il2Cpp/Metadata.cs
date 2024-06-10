@@ -76,6 +76,10 @@ namespace Il2CppDumper
                     }
                 }
             }
+            if (SizeOf(typeof(Il2CppGlobalMetadataHeader)) != header.stringLiteralOffset)
+            {
+                Console.WriteLine($"WARNING: Metadata header size does not match declared version {version}, version might be incorrect.");
+            }
             imageDefs = ReadMetadataClassArray<Il2CppImageDefinition>(header.imagesOffset, header.imagesSize, header.imagesCount);
             if (Version == 24.2 && header.assembliesSize / 68 < imageDefs.Length)
             {
