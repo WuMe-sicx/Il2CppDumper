@@ -208,14 +208,14 @@ namespace Il2CppDumper
             try
             {
                 var flag = !config.DisablePlusSearch && il2Cpp.PlusSearch(metadata.methodDefs.Count(x => x.methodIndex >= 0), metadata.typeDefs.Length, metadata.imageDefs.Length);
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (!config.DisablePlusSearch && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     if (!flag && il2Cpp is PE)
                     {
                         Console.WriteLine("Use custom PE loader");
                         il2Cpp = PELoader.Load(il2cppPath);
                         il2Cpp.SetProperties(version, metadata.metadataUsagesCount);
-                        flag = !config.DisablePlusSearch && il2Cpp.PlusSearch(metadata.methodDefs.Count(x => x.methodIndex >= 0), metadata.typeDefs.Length, metadata.imageDefs.Length);
+                        flag = il2Cpp.PlusSearch(metadata.methodDefs.Count(x => x.methodIndex >= 0), metadata.typeDefs.Length, metadata.imageDefs.Length);
                     }
                 }
                 if (!flag)
