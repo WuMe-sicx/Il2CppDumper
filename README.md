@@ -55,6 +55,10 @@ structure information header file
 
 For Ghidra
 
+#### ghidra_12_with_struct.py
+
+For Ghidra 12+ (PyGhidra / Python 3), import `il2cpp.h` first
+
 #### Il2CppBinaryNinja
 
 For BinaryNinja

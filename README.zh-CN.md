@@ -52,6 +52,10 @@ Il2CppDumper.exe <executable-file> <global-metadata> <output-directory>
 
 用于Ghidra
 
+#### ghidra_12_with_struct.py
+
+用于Ghidra 12+ (PyGhidra / Python 3), 需先导入`il2cpp.h`
+
 #### Il2CppBinaryNinja
 
 用于BinaryNinja
