@@ -1311,9 +1311,9 @@ namespace Il2CppDumper
                         if (context != null)
                         {
                             var genericParameter = executor.GetGenericParameteFromIl2CppType(il2CppType);
-                            var genericInstPointer = context.method_inst != 0
-                                ? context.method_inst
-                                : context.class_inst;
+                            var genericInstPointer = il2CppType.type == Il2CppTypeEnum.IL2CPP_TYPE_VAR
+                                ? context.class_inst
+                                : context.method_inst;
                             if (genericInstPointer != 0)
                             {
                                 var genericInst = il2Cpp.MapVATR<Il2CppGenericInst>(genericInstPointer);
