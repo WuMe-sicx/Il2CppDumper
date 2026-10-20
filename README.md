@@ -98,6 +98,12 @@ Available options:
 * `NoRedirectedPointer`
   * Treat pointers in dumped files as unredirected, This option needs to be `true` for files dumped from some devices
 
+* `EscapeJsonValues`
+  * Whether to escape non-ASCII characters in `script.json` and `stringliteral.json`. Set to `false` to keep strings readable
+
+* `DisablePlusSearch`
+  * Skip PlusSearch and use the other search methods, for files where PlusSearch crashes or finds wrong addresses
+
 ## Common errors
 
 #### `ERROR: Metadata file supplied is not valid metadata file.`  

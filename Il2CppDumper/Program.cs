@@ -207,7 +207,7 @@ namespace Il2CppDumper
             Console.WriteLine("Searching...");
             try
             {
-                var flag = il2Cpp.PlusSearch(metadata.methodDefs.Count(x => x.methodIndex >= 0), metadata.typeDefs.Length, metadata.imageDefs.Length);
+                var flag = !config.DisablePlusSearch && il2Cpp.PlusSearch(metadata.methodDefs.Count(x => x.methodIndex >= 0), metadata.typeDefs.Length, metadata.imageDefs.Length);
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     if (!flag && il2Cpp is PE)
@@ -215,7 +215,7 @@ namespace Il2CppDumper
                         Console.WriteLine("Use custom PE loader");
                         il2Cpp = PELoader.Load(il2cppPath);
                         il2Cpp.SetProperties(version, metadata.metadataUsagesCount);
-                        flag = il2Cpp.PlusSearch(metadata.methodDefs.Count(x => x.methodIndex >= 0), metadata.typeDefs.Length, metadata.imageDefs.Length);
+                        flag = !config.DisablePlusSearch && il2Cpp.PlusSearch(metadata.methodDefs.Count(x => x.methodIndex >= 0), metadata.typeDefs.Length, metadata.imageDefs.Length);
                     }
                 }
                 if (!flag)
@@ -262,7 +262,7 @@ namespace Il2CppDumper
             {
                 Console.WriteLine("Generate struct...");
                 var scriptGenerator = new StructGenerator(executor);
-                scriptGenerator.WriteScript(outputDir);
+                scriptGenerator.WriteScript(outputDir, config.EscapeJsonValues);
                 Console.WriteLine("Done!");
             }
             if (config.GenerateDummyDll)

@@ -91,6 +91,12 @@ Il2CppDumper.exe <executable-file> <global-metadata> <output-directory>
 * `NoRedirectedPointer`
   * 将dump文件中的指针视为未重定向的, 从某些设备dump出的文件需要设置该项为`true`
 
+* `EscapeJsonValues`
+  * 是否转义`script.json`和`stringliteral.json`中的非ASCII字符, 设置为`false`可保持中文等字符可读
+
+* `DisablePlusSearch`
+  * 跳过PlusSearch改用其他搜索方式, 用于PlusSearch崩溃或找到错误地址的文件
+
 ## 常见问题
 
 #### `ERROR: Metadata file supplied is not valid metadata file.`

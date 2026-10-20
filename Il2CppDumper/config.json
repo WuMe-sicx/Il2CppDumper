@@ -13,5 +13,7 @@
   "ForceIl2CppVersion": false,
   "ForceVersion": 16,
   "ForceDump": false,
-  "NoRedirectedPointer": false
+  "NoRedirectedPointer": false,
+  "EscapeJsonValues": true,
+  "DisablePlusSearch": false
 }
