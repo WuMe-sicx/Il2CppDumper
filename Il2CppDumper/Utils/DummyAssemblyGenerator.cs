@@ -112,6 +112,9 @@ namespace Il2CppDumper
                     }
                 }
             }
+            //v35+ 的枚举 parentIndex 存的是底层类型，基类需要单独指定为 System.Enum
+            var enumType = typeDefinitionDic.Values.FirstOrDefault(x => x.Namespace == "System" && x.Name == "Enum")
+                ?? new TypeReference("System", "Enum", dummyMD, typeSystem.CoreLibrary);
             //提前处理
             foreach (var imageDef in metadata.imageDefs)
             {
@@ -142,7 +145,11 @@ namespace Il2CppDumper
                     }
 
                     //parent
-                    if (typeDef.parentIndex >= 0)
+                    if (typeDef.IsEnum && il2Cpp.Version >= 35)
+                    {
+                        typeDefinition.BaseType = typeDefinition.Module.ImportReference(enumType);
+                    }
+                    else if (typeDef.parentIndex >= 0)
                     {
                         var parentType = il2Cpp.types[typeDef.parentIndex];
                         var parentTypeRef = GetTypeReference(typeDefinition, parentType);
@@ -383,10 +390,7 @@ namespace Il2CppDumper
                 }
             }
             //第三遍，添加CustomAttribute
-            // Metadata v39 custom attribute enum blobs are not representable by
-            // Mono.Cecil's legacy custom attribute writer. They are still emitted
-            // to dump.cs; skip embedding them so DummyDll export can complete.
-            if (il2Cpp.Version > 20 && il2Cpp.Version < 39)
+            if (il2Cpp.Version > 20)
             {
                 foreach (var imageDef in metadata.imageDefs)
                 {
