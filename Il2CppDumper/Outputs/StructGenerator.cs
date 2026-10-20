@@ -719,16 +719,13 @@ namespace Il2CppDumper
             AddFields(typeDef, structInfo, null, typeIndex);
             if (structInfo.IsExplicitLayout)
             {
-                structInfo.IsExplicitLayout = structInfo.Fields
-                    .GroupBy(x => x.Offset)
-                    .Any(x => x.Key >= 0 && x.Count() > 1);
-                if (structInfo.IsExplicitLayout)
+                structInfo.NativeSize = il2Cpp.GetTypeDefinitionSizeFromIndex(typeIndex);
+                //il2cpp 的实例大小同时是数组步长，对齐不能超过能整除它的最大 2 的幂（如 StructLayout Size=30）
+                var packingSize = GetPackingSize(typeDef);
+                structInfo.PackingSize = Math.Min(packingSize > 0 ? packingSize : 8, structInfo.NativeSize & -structInfo.NativeSize);
+                if (structInfo.NativeSize <= 0 || structInfo.Fields.Count == 0 || structInfo.Fields.Any(x => x.Offset < 0 || x.Offset >= structInfo.NativeSize))
                 {
-                    structInfo.NativeSize = il2Cpp.GetTypeDefinitionSizeFromIndex(typeIndex);
-                    if (structInfo.NativeSize <= 0 || structInfo.Fields.Any(x => x.Offset < 0 || x.Offset >= structInfo.NativeSize))
-                    {
-                        structInfo.IsExplicitLayout = false;
-                    }
+                    structInfo.IsExplicitLayout = false;
                 }
             }
             AddVTableMethod(structInfo, typeDef);
@@ -746,6 +743,17 @@ namespace Il2CppDumper
             AddParents(typeDef, structInfo);
             AddFields(typeDef, structInfo, genericClass.context);
             AddVTableMethod(structInfo, typeDef);
+        }
+
+        private int GetPackingSize(Il2CppTypeDefinition typeDef)
+        {
+            //bitfield 07-10 位是 PackingSize 枚举，11 位表示 PackingSize 为默认值
+            if (il2Cpp.Version < 24 || ((typeDef.bitfield >> 10) & 1) == 1)
+            {
+                return 0;
+            }
+            var packing = (int)((typeDef.bitfield >> 6) & 0xF);
+            return packing is >= 1 and <= 8 ? 1 << (packing - 1) : 0;
         }
 
         private void AddParents(Il2CppTypeDefinition typeDef, StructInfo structInfo)
@@ -1046,8 +1054,8 @@ namespace Il2CppDumper
             }
             if (info.IsExplicitLayout)
             {
+                //与 il2cpp 生成代码相同：打包的 padding 结构定位字段，_forAlignmentOnly 让 union 保留字段的自然对齐
                 sb.Append("\tunion {\n");
-                sb.Append("\t\t#pragma pack(push, 1)\n");
                 for (var i = 0; i < info.Fields.Count; i++)
                 {
                     var field = info.Fields[i];
@@ -1057,13 +1065,17 @@ namespace Il2CppDumper
                     }
                     else
                     {
+                        sb.Append("\t\t#pragma pack(push, 1)\n");
                         sb.Append("\t\tstruct {\n");
                         sb.Append($"\t\t\tuint8_t __il2cpp_padding_{i}[{field.Offset}];\n");
                         AppendField(sb, field, "\t\t\t");
                         sb.Append("\t\t};\n");
+                        sb.Append("\t\t#pragma pack(pop)\n");
+                        sb.Append("\t\tstruct {\n");
+                        AppendField(sb, field, "\t\t\t", "_forAlignmentOnly");
+                        sb.Append("\t\t};\n");
                     }
                 }
-                sb.Append("\t\t#pragma pack(pop)\n");
                 sb.Append($"\t\tuint8_t __il2cpp_size[{info.NativeSize}];\n");
                 sb.Append("\t};\n");
             }
@@ -1075,6 +1087,11 @@ namespace Il2CppDumper
                 }
             }
             sb.Append("};\n");
+            if (info.IsExplicitLayout && info.PackingSize < 8)
+            {
+                sb.Insert(0, $"#pragma pack(push, {info.PackingSize})\n");
+                sb.Append("#pragma pack(pop)\n");
+            }
 
             if (info.RGCTXs.Count > 0)
             {
@@ -1181,15 +1198,15 @@ namespace Il2CppDumper
             return pre.Append(sb).ToString();
         }
 
-        private static void AppendField(StringBuilder sb, StructFieldInfo field, string padding)
+        private static void AppendField(StringBuilder sb, StructFieldInfo field, string padding, string suffix = "")
         {
             if (field.IsCustomType)
             {
-                sb.Append($"{padding}struct {field.FieldTypeName} {field.FieldName};\n");
+                sb.Append($"{padding}struct {field.FieldTypeName} {field.FieldName}{suffix};\n");
             }
             else
             {
-                sb.Append($"{padding}{field.FieldTypeName} {field.FieldName};\n");
+                sb.Append($"{padding}{field.FieldTypeName} {field.FieldName}{suffix};\n");
             }
         }
 

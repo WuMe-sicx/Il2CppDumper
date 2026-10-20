@@ -9,6 +9,7 @@ namespace Il2CppDumper
         public bool IsValueType;
         public bool IsExplicitLayout;
         public int NativeSize;
+        public int PackingSize;
         public string Parent;
         public List<StructFieldInfo> Fields = new();
         public List<StructFieldInfo> StaticFields = new();

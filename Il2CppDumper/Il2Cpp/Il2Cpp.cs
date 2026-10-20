@@ -321,10 +321,7 @@ namespace Il2CppDumper
                 }
                 Position = MapVATR(pMetadataRegistration.typeDefinitionsSizes) + (ulong)typeIndex * PointerSize;
                 var typeDefinitionSizes = MapVATR<Il2CppTypeDefinitionSizes>(ReadUIntPtr());
-                if (typeDefinitionSizes.native_size > 0)
-                {
-                    return typeDefinitionSizes.native_size;
-                }
+                //字段偏移来自托管实例布局，大小也取 instance_size 而不是封送用的 native_size
                 var objectHeaderSize = Is32Bit ? 8u : 16u;
                 return typeDefinitionSizes.instance_size >= objectHeaderSize
                     ? (int)(typeDefinitionSizes.instance_size - objectHeaderSize)
