@@ -9,6 +9,8 @@
     <Copyright>Copyright © Perfare 2016-2024</Copyright>
     <DebugType>embedded</DebugType>
 	<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <!-- 输出与系统区域设置无关（如中文 Windows 会把 Infinity 格式化成 ∞） -->
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
