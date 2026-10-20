@@ -176,21 +176,24 @@ namespace Il2CppDumper
                 VariableIndexKind.ParameterDefinition,
                 Version >= 39 ? GetIndexWidth(header.parametersCount) : sizeof(int));
 
-            int typeWidth;
-            if (header.interfaceOffsetsCount > 0)
+            // 从记录大小反推 TypeIndex 宽度：
+            // Il2CppInterfaceOffsetPair = TypeIndex + int；Il2CppFieldDefinition / Il2CppParameterDefinition = 两个 uint + TypeIndex
+            var candidates = new[]
             {
-                typeWidth = header.interfaceOffsetsSize / header.interfaceOffsetsCount - sizeof(int);
-            }
-            else if (header.fieldsCount > 0)
+                (header.interfaceOffsetsSize, header.interfaceOffsetsCount, sizeof(int)),
+                (header.fieldsSize, header.fieldsCount, sizeof(int) * 2),
+                (header.parametersSize, header.parametersCount, sizeof(int) * 2),
+            }.Where(x => x.Item2 > 0).ToArray();
+            if (candidates.Length == 0)
             {
-                // Il2CppFieldDefinition is nameIndex + TypeIndex + token.
-                typeWidth = header.fieldsSize / header.fieldsCount - sizeof(int) * 2;
+                throw new InvalidDataException("ERROR: Unable to determine metadata TypeIndex width.");
             }
-            else
+            var typeWidths = candidates.Select(x => x.Item1 % x.Item2 == 0 ? x.Item1 / x.Item2 - x.Item3 : -1).Distinct().ToArray();
+            if (typeWidths.Length != 1)
             {
-                typeWidth = sizeof(int);
+                throw new InvalidDataException($"ERROR: Inconsistent metadata TypeIndex width: {string.Join(", ", typeWidths)}.");
             }
-            SetVariableIndexWidth(VariableIndexKind.Type, typeWidth);
+            SetVariableIndexWidth(VariableIndexKind.Type, typeWidths[0]);
         }
 
         private static int GetIndexWidth(int elementCount)
